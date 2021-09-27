@@ -24,4 +24,4 @@ jobs:
           DEFAULT_DEST: ${{ secrets.DEFAULT_DEST }}
         run: |
           cd heroku
-          bash deploy.sh 
+          bash deploy.sh
