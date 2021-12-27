@@ -9,7 +9,7 @@ const { AUTH, DEFAULT_TARGET, USE_PERSONAL_AUTH } = require('../config')
 const { tg_token } = AUTH
 const gen_link = (fid, text) => `<a href="https://drive.google.com/drive/folders/${fid}">${text || fid}</a>`
 
-if (!tg_token) throw new Error('Please set Bot_token in config.js first')
+if (!tg_token) throw new Error('Lütfen önce Bot_token"ı config.js"de ayarlayın')
 const { https_proxy } = process.env
 const axins = axios.create(https_proxy ? { httpsAgent: new HttpsProxyAgent(https_proxy) } : {})
 
@@ -24,31 +24,31 @@ async function get_folder_name (fid) {
 
 function send_help (chat_id) {
   const text = `
-<b>Command ｜ Description</b>
+<b>Komut ｜ Açıklama</b>
 ➖➖➖➖➖➖➖➖➖➖➖➖
-<pre>/reload</pre> <b>|</b> Restart the Task
+<pre>/reload</pre> <b>|</b> Görevi Yeniden Başlat
 ➖➖➖➖➖➖➖➖➖➖➖➖
-<pre>/count FolderID [-u]</pre> <b>|</b> Calculates Size
-- adding <pre>-u</pre> at the end is optional <i>(info will be collected online)</i>
+<pre>/count FolderID [-u]</pre> <b>|</b> Boyutu Hesapla
+- sonuna <pre>-u</pre> eklemek isteğe bağlıdır <i>(bilgi çevrimiçi olarak toplanacaktır)</i>
 ➖➖➖➖➖➖➖➖➖➖➖➖
-<pre>/copy sourceID DestID [-u]</pre> <b>|</b> Clone Files（Will create a New Folder）
-- If targetID is not filled in, it will be copied to the default location (set in <pre>config.js</pre>)
-- adding <pre>-u</pre> at the end is optional <i>(info will be collected online)</i>
+<pre>/copy sourceID Hedef Kimliği [-u]</pre> <b>|</b> Dosyaları Klonla（Yeni bir Klasör oluşturacak）
+- TargetID doldurulmazsa, varsayılan konuma kopyalanır (<pre>config.js</pre>'de ayarlanır)
+- sonuna <pre>-u</pre> eklemek isteğe bağlıdır <i>(bilgi çevrimiçi olarak toplanacaktır)</i>
 ➖➖➖➖➖➖➖➖➖➖➖➖
-<pre>/task</pre> <b>|</b> Shows info about the running task
-⁍ Example：
-<pre>/task</pre> <b>|</b> Return Details Of All Running Tasks.
-<pre>/task [ID]</pre> <b>|</b> Return Info Of Specific Task.
-<pre>/task all</pre> <b>|</b> Return The List Of All Tasks.
-<pre>/task clear</pre> <b>|</b> Clear All Completed Tasks.
-<pre>/task rm [ID]</pre> <b>|</b> Delete Specific Task.
+<pre>/task</pre> <b>|</b> Çalışan görevle ilgili bilgileri gösterir
+⁍ Örnek: 
+<pre>/task</pre> <b>|</b> Çalışan Tüm Görevlerin Ayrıntılarını Döndürür.
+<pre> /task [İD]<|pre> <b>/</b> Belirli Bir Görevin Bilgilerini Döndürür.
+<pre>/task all</pre> <b>/</b> Tüm Görevlerin Listesini Döndürür.
+<pre>/ görev temizle</pre> <b>|</b> Tamamlanan Tüm Görevleri Temizle.
+<pre>/task rm [İD]<|pre> <b>/</b> Belirli Bir Görevi Silin.
 ➖➖➖➖➖➖➖➖➖➖➖➖
-<pre>/bm [action] [alias] [target]</pre> <b>|</b> Add a common FolderID as Bookmark
-- <i>Helpful while cloning to same destination folder multiple times</i>
-⁍ Example：
-<pre>/bm</pre> <b>|</b> Shows all bookmarks
-<pre>/bm set movie folder-id</pre> <b>|</b> Add a Bookmark by the name movie
-<pre>/bm unset movie</pre> <b>|</b> Delete this bookmark
+<pre>/bm [eylem] [takma ad] [hedef]</pre> <b>|</b> Yer İşareti olarak ortak bir Klasör Kimliği ekleyin
+- <i>Aynı hedef klasöre birden çok kez klonlanırken yardımcı olur</i>
+⁍ Örnek: 
+<pre>/bm</pre> <b>/</b> Tüm yer imlerini gösterir
+<pre>/bm film klasörü kimliğini ayarla<|pre> <b>/</b> Film adına göre yer imi ekle
+<pre>/bm filmi kaldır</pre> <b>/</b> Bu yer imini sil
 `
   return sm({ chat_id, text, parse_mode: 'HTML' })
 }
@@ -79,7 +79,7 @@ function send_task_help (chat_id) {
 function clear_tasks (chat_id) {
   const finished_tasks = db.prepare('select id from task where status=?').all('finished')
   finished_tasks.forEach(task => rm_task({ task_id: task.id }))
-  sm({ chat_id, text: 'All completed tasks have been cleared' })
+  sm({ chat_id, text: 'Tamamlanan tüm görevler temizlendi' })
 }
 
 function rm_task ({ task_id, chat_id }) {
@@ -103,14 +103,14 @@ function send_all_bookmarks (chat_id) {
 
 function set_bookmark ({ chat_id, alias, target }) {
   const record = db.prepare('select alias from bookmark where alias=?').get(alias)
-  if (record) return sm({ chat_id, text: 'There is anothe Favourite Folder with the same name' })
+  if (record) return sm({ chat_id, text: 'Aynı ada sahip başka bir Favori Klasör var' })
   db.prepare('INSERT INTO bookmark (alias, target) VALUES (?, ?)').run(alias, target)
   return sm({ chat_id, text: `<b>Bookmark Successfully Set</b>： <pre>${alias}</pre> <b>|</b> <pre>${target}</pre>`, parse_mode: 'HTML' })
 }
 
 function unset_bookmark ({ chat_id, alias }) {
   const record = db.prepare('select alias from bookmark where alias=?').get(alias)
-  if (!record) return sm({ chat_id, text: 'No Bookmarks found with this Name' })
+  if (!record) return sm({ chat_id, text: 'Bu Adla Yer İşareti bulunamadı' })
   db.prepare('delete from bookmark where alias=?').run(alias)
   return sm({ chat_id, text: `<b>Bookmark Successfully Deleted</b>: <pre>${alias}</pre>`, parse_mode: 'HTML' })
 }
@@ -132,12 +132,12 @@ function send_choice ({ fid, chat_id }) {
     reply_markup: {
       inline_keyboard: [
         [
-          { text: 'Calculate Size', callback_data: `count ${fid}` },
-          { text: 'Clone', callback_data: `copy ${fid}` }
+          { text: 'Boyut', callback_data: `count ${fid}` },
+          { text: 'Kopyala', callback_data: `copy ${fid}` }
         ],
         [
-          { text: 'Refresh', callback_data: `update ${fid}` },
-          { text: 'Clear', callback_data: `clear_button` }
+          { text: 'Yenile', callback_data: `update ${fid}` },
+          { text: 'Temizle', callback_data: `clear_button` }
         ]
       ].concat(gen_bookmark_choices(fid))
     }
@@ -158,8 +158,8 @@ function gen_bookmark_choices (fid) {
 }
 
 async function send_all_tasks (chat_id) {
-  let records = db.prepare('select id, status, ctime from task').all()
-  if (!records.length) return sm({ chat_id, text: 'No task record in the database' })
+  let records = db.prepare('görevden kimliği, durumu, time"ı seçin').all()
+  if (!records.length) return sm({ chat_id, text: 'Veritabanında görev kaydı yok' })
   const tb = new Table({ style: { head: [], border: [] } })
   const headers = ['ID', 'status', 'ctime']
   records = records.map(v => {
