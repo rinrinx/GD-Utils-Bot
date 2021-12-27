@@ -193,18 +193,18 @@ async function get_task_info (task_id) {
   const { file_count, folder_count, total_size } = summary ? JSON.parse(summary) : {}
   const total_count = (file_count || 0) + (folder_count || 0)
   const copied_folders = folder_mapping ? (folder_mapping.length - 1) : 0
-  let text = '<b>Task No</b>： <pre>' + task_id + '</pre>\n'
+  let text = '<b>👤 Görev No</b>： <pre>' + task_id + '</pre>\n'
   const folder_name = await get_folder_name(source)
-  text += '<b>Source Folder</b>：' + gen_link(source, folder_name) + '\n'
-  text += '<b>Destination Folder</b>：' + gen_link(target, get_alias_by_target(target)) + '\n'
-  text += '<b>New Folder</b>：' + (new_folder ? gen_link(new_folder) : 'Not Created yet') + '\n'
-  text += '<b>Task Status</b>： <pre>' + status + '</pre>\n'
-  text += '<b>Start Time</b>： <pre>' + dayjs(ctime).format('YYYY-MM-DD HH:mm:ss') + '</pre>\n'
-  text += '<b>End Time</b>： <pre>' + (ftime ? dayjs(ftime).format('YYYY-MM-DD HH:mm:ss') : 'Not Done') + '</pre>\n'
-  text += '<b>Folder Progress</b>： <pre>' + copied_folders + '/' + (folder_count === undefined ? 'Unknown' : folder_count) + '</pre>\n'
-  text += '<b>File Progress</b>： <pre>' + copied_files + '/' + (file_count === undefined ? 'Unkno wn' : file_count) + '</pre>\n'
-  text += '<b>Total Percentage</b>： <pre>' + ((copied_files + copied_folders) * 100 / total_count).toFixed(2) + '%</pre>\n'
-  text += '<b>Total Size</b>： <pre>' + (total_size || 'Unknown') + '</pre>'
+  text += '<b>📁 Kaynak</b>：' + gen_link(source, folder_name) + '\n'
+  text += '<b>📁 Hedef</b>：' + gen_link(target, get_alias_by_target(target)) + '\n'
+  text += '<b>📁 Drive_Link</b>：' + (new_folder ? gen_link(new_folder) : 'Not Created yet') + '\n'
+  text += '<b>📝 Görev Durum</b>： <pre>' + status + '</pre>\n'
+  text += '<b>🏁 Start</b>： <pre>' + dayjs(ctime).format('YYYY-MM-DD HH:mm:ss') + '</pre>\n'
+  text += '<b>⛔️ End</b>： <pre>' + (ftime ? dayjs(ftime).format('YYYY-MM-DD HH:mm:ss') : 'Not Done') + '</pre>\n'
+  text += '<b>🗁 Klasor Durum</b>： <pre>' + copied_folders + '/' + (folder_count === undefined ? 'Unknown' : folder_count) + '</pre>\n'
+  text += '<b>🗄️ Dosya Durum</b>： <pre>' + copied_files + '/' + (file_count === undefined ? 'Unkno wn' : file_count) + '</pre>\n'
+  text += '<b>🔄 Total Ilerleme</b>： <pre>' + ((copied_files + copied_folders) * 100 / total_count).toFixed(2) + '%</pre>\n'
+  text += '<b>🚀 Toplam Boyut</b>： <pre>' + (total_size || 'Unknown') + '</pre>'
   return { text, status, folder_count }
 }
 
@@ -231,7 +231,7 @@ async function send_task_info ({ task_id, chat_id }) {
 
 async function tg_copy ({ fid, target, chat_id, update }) { // return task_id
   target = target || DEFAULT_TARGET
-  if (!target) return sm({ chat_id, text: 'Please enter the destination ID or set the default clone destination ID in config.js first(DEFAULT_TARGET)' })
+  if (!target) return sm({ chat_id, text: 'Lütfen hedef kimliğini girin veya varsayılan klon hedef kimliğini şurada ayarlayın config.js first(DEFAULT_TARGET)' })
 
   const file = await get_info_by_id(fid, !USE_PERSONAL_AUTH)
   if (!file) {
@@ -249,8 +249,8 @@ async function tg_copy ({ fid, target, chat_id, update }) { // return task_id
   let record = db.prepare('select id, status from task where source=? and target=?').get(fid, target)
   if (record) {
     if (record.status === 'copying') {
-      return sm({ chat_id, text: 'Task With The Same SourceID And DestinationID Is Already In Progress，\nType /task ' + record.id })
-    } else if (record.status === 'finished') {
+      return sm({ chat_id, text: 'SourceID ve DestinationID ile Görev Halihazırda Devam Ediyor，\nTip /task ' + record.id })
+    } else if (record.status === 'Bitti') {
       sm({ chat_id, text: `<b>Existing Task Detected</b> <pre>${record.id}</pre> ,Started Cloning`, parse_mode: 'HTML' })
     }
   }
@@ -267,7 +267,7 @@ async function tg_copy ({ fid, target, chat_id, update }) { // return task_id
       const task_id = record && record.id
       if (task_id) db.prepare('update task set status=? where id=?').run('error', task_id)
       if (!record) record = {}
-      console.error('Copy Failed', fid, '-->', target)
+      console.error('Kopyalama Başarısız', fid, '-->', target)
       console.error(err)
       sm({ chat_id, text: (task_id || '') + `<b>Task Error</b>：<pre>${err.message}</pre>`, parse_mode: 'HTML' })
     })
@@ -289,7 +289,7 @@ function reply_cb_query ({ id, data }) {
   const url = `https://api.telegram.org/bot${tg_token}/answerCallbackQuery`
   return axins.post(url, {
     callback_query_id: id,
-    text: 'Start the Task ' + data
+    text: 'Görevi Başlat ' + data
   })
 }
 
@@ -300,8 +300,8 @@ async function send_count ({ fid, chat_id, update }) {
     return `Size：${gen_link(fid)}
 Time：${now}
 Number of Files：${obj_count || ''}
-${pending_count ? ('Pending：' + pending_count) : ''}
-${processing_count ? ('Ongoing：' + processing_count) : ''}`
+${pending_count ? ('Bekliyor：' + pending_count) : ''}
+${processing_count ? ('devam ediyor：' + processing_count) : ''}`
   }
 
   const url = `https://api.telegram.org/bot${tg_token}/sendMessage`
@@ -320,7 +320,7 @@ ${processing_count ? ('Ongoing：' + processing_count) : ''}`
 
   const service_account = !USE_PERSONAL_AUTH
   const table = await gen_count_body({ fid, update, service_account, type: 'tg', tg: message_id && message_updater })
-  if (!table) return sm({ chat_id, parse_mode: 'HTML', text: gen_link(fid) + ' Failed to obtain info' })
+  if (!table) return sm({ chat_id, parse_mode: 'HTML', text: gen_link(fid) + ' bilgi alınamadı' })
   const gd_link = `https://drive.google.com/drive/folders/${fid}`
   const name = await get_folder_name(fid)
   return axins.post(url, {
@@ -352,7 +352,7 @@ function sm (data, endpoint) {
   const url = `https://api.telegram.org/bot${tg_token}/${endpoint}`
   return axins.post(url, data).catch(err => {
     // console.error('fail to post', url, data)
-    console.error('fail to send message to tg:', err.message)
+    console.error('tg"ye mesaj gönderilemedi:', err.message)
     const err_data = err.response && err.response.data
     err_data && console.error(err_data)
   })
