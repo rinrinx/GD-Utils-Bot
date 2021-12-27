@@ -62,26 +62,26 @@ router.post('/gutils/api/gdurl/tgbot', async ctx => {
     const chat_id = callback_query.from.id
     const [action, fid, target] = data.split(' ').filter(v => v)
     if (action === 'count') {
-      if (counting[fid]) return sm({ chat_id, text: fid + ' Counting, please wait a moment' })
+      if (counting[fid]) return sm({ chat_id, text: fid + ' Hesaplanıyor, lütfen biraz bekleyin' })
       counting[fid] = true
       send_count({ fid, chat_id }).catch(err => {
         console.error(err)
-        sm({ chat_id, text: fid + ' Stats Failed：' + err.message })
+        sm({ chat_id, text: fid + ' Istatistikler Başarısız：' + err.message })
       }).finally(() => {
         delete counting[fid]
       })
     } else if (action === 'copy') {
-      if (COPYING_FIDS[fid + target]) return sm({ chat_id, text: 'Processing copy command with the same source and destination' })
+      if (COPYING_FIDS[fid + target]) return sm({ chat_id, text: 'kaynak ve hedef ile kopyalama komutu işleniyor' })
       COPYING_FIDS[fid + target] = true
       tg_copy({ fid, target: get_target_by_alias(target), chat_id }).then(task_id => {
         is_int(task_id) && sm({ chat_id, text: `Clone Started For Task ID: ${task_id}\nType /task ${task_id} to check the progress` })
       }).finally(() => COPYING_FIDS[fid + target] = false)
     } else if (action === 'update') {
-      if (counting[fid]) return sm({ chat_id, text: fid + ' Counting, please wait a moment' })
+      if (counting[fid]) return sm({ chat_id, text: fid + ' Hesaplanıyor, lütfen biraz bekleyin' })
       counting[fid] = true
       send_count({ fid, chat_id, update: true }).catch(err => {
         console.error(err)
-        sm({ chat_id, text: fid + ' Stats Failed：' + err.message })
+        sm({ chat_id, text: fid + ' Istatistikler Başarısız：' + err.message })
       }).finally(() => {
         delete counting[fid]
       })
@@ -102,42 +102,42 @@ router.post('/gutils/api/gdurl/tgbot', async ctx => {
     v = String(v).toLowerCase()
     return v === username || v === user_id
   })) {
-    chat_id && sm({ chat_id, text: 'You are not supposed to Message me you idiot, go back to the hole you came from' })
-    return console.warn('Received a request from a non-whitelisted user')
+    chat_id && sm({ chat_id, text: 'Bana mesaj atmamalısın aptal, geldiğin deliğe geri dön' })
+    return console.warn('Beyaz listede olmayan bir kullanıcıdan istek alındı')
   }
 
   const fid = extract_fid(text) || extract_from_text(text) || extract_from_text(message_str)
   const no_fid_commands = ['/task', '/help', '/bm', '/reload']
   if (!no_fid_commands.some(cmd => text.startsWith(cmd)) && !validate_fid(fid)) {
-    return sm({ chat_id, text: 'Folder ID is invalid or not accessible' })
+    return sm({ chat_id, text: 'Klasör kimliği geçersiz veya erişilebilir değil' })
   }
   if (text.startsWith('/help')) return send_help(chat_id)
   if (text.startsWith('/reload')) {
-    if (!is_pm2()) return sm({ chat_id, text: 'Process is not a pm2 daemon，Do not restart' })
+    if (!is_pm2()) return sm({ chat_id, text: 'Işlem bir pm2 arka plan programı değil, yeniden başlatmayın' })
     sm({ chat_id, text: 'Restart' }).then(() => process.exit())
   } else if (text.startsWith('/bm')) {
     const [cmd, action, alias, target] = text.split(' ').map(v => v.trim()).filter(v => v)
     if (!action) return send_all_bookmarks(chat_id)
     if (action === 'set') {
-      if (!alias || !target) return sm({ chat_id, text: 'Name and Destination FolderID cannot be empty ' })
-      if (alias.length > 24) return sm({ chat_id, text: 'Name Shouldnt be more than 24 Letters in Length' })
-      if (!validate_fid(target)) return sm({ chat_id, text: 'Incorrect Destination FolderID' })
+      if (!alias || !target) return sm({ chat_id, text: 'Ad ve Hedef Klasör Kimliği boş olamaz ' })
+      if (alias.length > 24) return sm({ chat_id, text: 'İsim Uzunluğu 24 Harften Fazla Olmamalıdır' })
+      if (!validate_fid(target)) return sm({ chat_id, text: 'Yanlış Hedef Klasör Kimliği' })
       set_bookmark({ chat_id, alias, target })
     } else if (action === 'unset') {
-      if (!alias) return sm({ chat_id, text: 'Name Cannot be empty' })
+      if (!alias) return sm({ chat_id, text: 'Ad Boş olamaz' })
       unset_bookmark({ chat_id, alias })
     } else {
       send_bm_help(chat_id)
     }
   } else if (text.startsWith('/count')) {
-    if (counting[fid]) return sm({ chat_id, text: fid + ' Counting, please wait a moment' })
+    if (counting[fid]) return sm({ chat_id, text: fid + ' Hesaplanıyor, lütfen biraz bekleyin' })
     try {
       counting[fid] = true
       const update = text.endsWith(' -u')
       await send_count({ fid, chat_id, update })
     } catch (err) {
       console.error(err)
-      sm({ chat_id, text: fid + ' Stats Failed：' + err.message })
+      sm({ chat_id, text: fid + ' Istatistikler Başarısız：' + err.message })
     } finally {
       delete counting[fid]
     }
@@ -145,7 +145,7 @@ router.post('/gutils/api/gdurl/tgbot', async ctx => {
     let target = text.replace('/copy', '').replace(' -u', '').trim().split(' ').map(v => v.trim()).filter(v => v)[1]
     target = get_target_by_alias(target) || target
     if (target && !validate_fid(target)) return sm({ chat_id, text: `Destination FolderID ${target} is Invalid` })
-    if (COPYING_FIDS[fid + target]) return sm({ chat_id, text: 'Processing copy command with the same source and destination' })
+    if (COPYING_FIDS[fid + target]) return sm({ chat_id, text: 'Aynı kaynak ve hedef ile kopyalama komutu işleniyor' })
     COPYING_FIDS[fid + target] = true
     const update = text.endsWith(' -u')
     tg_copy({ fid, target, chat_id, update }).then(task_id => {
@@ -168,14 +168,14 @@ router.post('/gutils/api/gdurl/tgbot', async ctx => {
     task_id = parseInt(task_id)
     if (!task_id) {
       const running_tasks = db.prepare('select id from task where status=?').all('copying')
-      if (!running_tasks.length) return sm({ chat_id, text: 'There are currently no running tasks' })
+      if (!running_tasks.length) return sm({ chat_id, text: 'Şu anda çalışan görev yok' })
       return running_tasks.forEach(v => send_task_info({ chat_id, task_id: v.id }).catch(console.error))
     }
     send_task_info({ task_id, chat_id }).catch(console.error)
   } else if (message_str.includes('drive.google.com/') || validate_fid(text)) {
     return send_choice({ fid: fid || text, chat_id })
   } else {
-    sm({ chat_id, text: 'This command is not currently supported' })
+    sm({ chat_id, text: 'Bu komut şu anda desteklenmiyor' })
   }
 })
 
