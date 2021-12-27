@@ -19,7 +19,7 @@ const { make_table, make_tg_table, make_html, summary } = require('./summary')
 const { gen_tree_html } = require('./tree')
 const { snap2html } = require('./snap2html')
 
-const FILE_EXCEED_MSG = 'The number of files on your team drive has exceeded the limit (400,000), Please move the folder that has not been copied to another team drive, and then run the copy command to resume the transfer'
+const FILE_EXCEED_MSG = 'Ekip sürücünüzdeki dosya sayısı sınırı (400.000) aştı, Lütfen kopyalanmayan klasörü başka bir ekip sürücüsüne taşıyın ve ardından aktarımı sürdürmek için kopyala komutunu çalıştırın.'
 const FOLDER_TYPE = 'application/vnd.google-apps.folder'
 const sleep = ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
 
@@ -414,12 +414,12 @@ async function get_sa_token () {
     try {
       return await real_get_sa_token(tk)
     } catch (e) {
-      console.warn('SA failed to get access_token：', e.message)
+      console.warn('SA, access_token alamadı：', e.message)
       SA_TOKENS = SA_TOKENS.filter(v => v.gtoken !== tk.gtoken)
       if (!SA_TOKENS.length) SA_TOKENS = get_sa_batch()
     }
   }
-  throw new Error('No SA available')
+  throw new Error('Kullanılabilir SA yok')
 }
 
 async function real_get_sa_token (el) {
@@ -471,10 +471,10 @@ async function create_folder (name, parent, use_sa, limit) {
         if (limit) limit.clearQueue()
         throw new Error(FILE_EXCEED_MSG)
       }
-      console.log('Creating Folder and Retrying：', name, 'No of retries：', retry)
+      console.log('Klasör Oluşturma ve Yeniden Deneme：', name, 'No of retries：', retry)
     }
   }
-  throw new Error(err_message + ' Folder Name：' + name)
+  throw new Error(err_message + ' Name：' + name)
 }
 
 async function get_name_by_id (fid, use_sa) {
